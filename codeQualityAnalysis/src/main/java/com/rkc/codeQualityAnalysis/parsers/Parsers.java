@@ -1,9 +1,6 @@
 package com.rkc.codeQualityAnalysis.parsers;
 
-import com.rkc.codeQualityAnalysis.models.CPD;
-import com.rkc.codeQualityAnalysis.models.CheckStyle;
-import com.rkc.codeQualityAnalysis.models.DuplicateFile;
-import com.rkc.codeQualityAnalysis.models.PMD;
+import com.rkc.codeQualityAnalysis.models.*;
 import com.rkc.codeQualityAnalysis.repositories.CPDRepository;
 import com.rkc.codeQualityAnalysis.repositories.CheckStylesRepository;
 import com.rkc.codeQualityAnalysis.repositories.PMDRepository;
@@ -82,8 +79,6 @@ public class Parsers {
 
                     String[] split = line.split(": ");
 
-                    System.out.println(Arrays.toString(split));
-
                     if (split.length < 3) {
                         continue;
                     }
@@ -151,14 +146,14 @@ public class Parsers {
                     //set Token length
                     //line.split(" ")
 
-                    StringBuilder codeBuilder= new StringBuilder();
+                    StringBuilder codeBuilder = new StringBuilder();
 
                     while ((line = br.readLine()) != null && !line.startsWith("=====================================================================")) {
 
-                        if(line.startsWith("Starting at line")){
+                        if (line.startsWith("Starting at line")) {
                             String[] splits = line.split(" ");
 
-                            if(splits.length>5){
+                            if (splits.length > 5) {
                                 DuplicateFile duplicateFile = new DuplicateFile();
                                 duplicateFile.setFileName(splits[5]);
                                 duplicateFile.setLineNumber(splits[3]);
@@ -181,5 +176,97 @@ public class Parsers {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void parseCyclomatic(InputStream inputStream, String userName) {
+
+        List<CyclomaticComplexity> cyclomaticComplexities = new LinkedList<>();
+
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+
+            LinkedList<String> lines = new LinkedList<>();
+
+
+            HashMap<String,LinkedList<MethodCyclomatic>> fileNameToMethodCyclomatic = new HashMap<>();
+
+            while ((line = br.readLine()) != null) {
+
+                //populate method level data
+                while (((line = br.readLine()) != null) && !"==============================================================".equalsIgnoreCase(line)) {
+
+                    if((line = br.readLine())!= null && "------------------------------------------------".equalsIgnoreCase(line)){
+
+                        while ((line = br.readLine())!= null && !line.endsWith("analyzed.")) {
+
+                            if(line.endsWith(".java")){
+                                CyclomaticComplexity cyclomaticComplexity = new CyclomaticComplexity();
+                                cyclomaticComplexities.add(cyclomaticComplexity);
+
+                                cyclomaticComplexity.setType("method");
+
+                                String[] splits = line.split(" ");
+                                int i=0;
+                                while("".equalsIgnoreCase(splits[i++]));
+                                String value1 = splits[i-1];
+                                while("".equalsIgnoreCase(splits[i++]));
+                                String value2 = splits[i-1];
+                                while("".equalsIgnoreCase(splits[i++]));
+                                String value3 = splits[i-1];
+                                while("".equalsIgnoreCase(splits[i++]));
+                                String value4 = splits[i-1];
+                                if(i<=splits.length&&"".equalsIgnoreCase(splits[i])){
+                                    while("".equalsIgnoreCase(splits[i++]));
+                                }
+                                String value5 = splits[i-1];
+                                boolean isExecutedInsideLoop =false;
+                                if(i<=splits.length && "".equalsIgnoreCase(splits[i])){
+                                    while(i<= splits.length&& "".equalsIgnoreCase(splits[i++]));
+                                    isExecutedInsideLoop=true;
+
+                                }
+
+                                String value6 =null;
+
+                                if(isExecutedInsideLoop){
+                                     value6= splits[i-1];
+                                }else{
+                                     value6 = splits[i];
+                                }
+
+
+                                System.out.println(value1+" "+value2+" "+value3+" "+value4+" "+value5+" "+value6);
+                            }
+                        }
+
+                    }
+                }
+
+
+                //second file level starts here
+                while (((line = br.readLine()) != null) && !"=========================================================================================".equalsIgnoreCase(line)) {
+
+                    if((line = br.readLine())!= null && "--------------------------------------------------------------".equalsIgnoreCase(line)){
+                        System.out.println("File level starts here");
+
+                        while ((line = br.readLine())!= null && !line.endsWith("=========================================================================================")) {
+                            if(line.endsWith(".java")){
+                                String[] splits = line.split("\t");
+                                System.out.println(Arrays.toString(splits));
+                            }
+                        }
+
+                    }
+                }
+
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

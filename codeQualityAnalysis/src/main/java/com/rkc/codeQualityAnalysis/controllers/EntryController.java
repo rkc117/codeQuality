@@ -34,6 +34,8 @@ public class EntryController {
     private JaCoCoService jaCoCoService;
     @Autowired
     private MethodCallGraphService methodCallGraphService;
+    @Autowired
+    private CyclomaticService cyclomaticService;
 
     @GetMapping("/check")
     public ResponseEntity<?> check(@RequestBody List<String> gitRepoUrls) throws Exception {
@@ -84,15 +86,18 @@ public class EntryController {
         });
 
         //Checkstyle
-        checkStylesService.checkStyles(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()),gitHubUserName);
+        //checkStylesService.checkStyles(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()),gitHubUserName);
 
         //PMD
-        pmdService.runThroughPMD(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()),gitHubUserName);
+        //pmdService.runThroughPMD(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()),gitHubUserName);
 
         //CPD
-        cpdService.runThroughCPD(path,gitHubUserName);
+        //cpdService.runThroughCPD(path,gitHubUserName);
 
-        //cyclomatic and halstead complexity
+        //cyclomatic
+        cyclomaticService.generateCyclomaticComplexity(path,gitHubUserName);
+
+        // halstead complexity
 
        // String jarFilePath = JarCreater.createJar(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()),gitHubUserName,"/tmp/");
 
