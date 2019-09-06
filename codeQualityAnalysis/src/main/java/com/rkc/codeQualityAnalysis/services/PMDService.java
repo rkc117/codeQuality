@@ -1,8 +1,8 @@
 package com.rkc.codeQualityAnalysis.services;
 
 import com.rkc.codeQualityAnalysis.parsers.Parsers;
-import com.rkc.codeQualityAnalysis.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ public class PMDService {
 
     private static String PMD = "/home/rkc/Briefcase/spotbugs/pmd/pmd-bin-6.17.0/bin/run.sh pmd -d  %s -f text -R rulesets/java/quickstart.xml";
 
-    public void runThroughPMD(List<String> filePaths,String userName) {
+    public void runThroughPMD(List<String> filePaths, String gitHubUserName, String requestId) {
 
         for (String filePath : filePaths) {
 
@@ -24,18 +24,19 @@ public class PMDService {
 
                 String command = String.format(PMD, filePath);
 
-                System.out.println(command);
-
                 Process process = Runtime.getRuntime().exec(command);
 
-                //Utils.printStream(process.getInputStream());
-                //Utils.printStream(process.getErrorStream());
-
-                parsers.parseAndSave(process.getInputStream(), "pmd", userName);
+                parsers.parseAndSave(process.getInputStream(), "pmd", gitHubUserName,requestId);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public ResponseEntity<?> getPMD(String requestId) {
+        // db.pmd.aggregate([{"$match":{"requestId":"5d72b264216d9153589bad28"}},{"$group":{"_id":"$fileName","message":{"$push":{"line":"$lineNumber","message":"$message"}}}}])
+
+        return null;
     }
 }

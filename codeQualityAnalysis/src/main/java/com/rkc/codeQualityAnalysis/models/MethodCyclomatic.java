@@ -9,6 +9,7 @@ public class MethodCyclomatic {
     private String param;
     private String CCN;
     private String NLOC;
+    private String location;
 
     public String getName() {
         return name;
@@ -64,5 +65,13 @@ public class MethodCyclomatic {
 
     public void setNLOC(String NLOC) {
         this.NLOC = NLOC;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 }

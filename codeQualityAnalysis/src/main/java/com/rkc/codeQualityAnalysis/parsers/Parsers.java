@@ -3,6 +3,7 @@ package com.rkc.codeQualityAnalysis.parsers;
 import com.rkc.codeQualityAnalysis.models.*;
 import com.rkc.codeQualityAnalysis.repositories.CPDRepository;
 import com.rkc.codeQualityAnalysis.repositories.CheckStylesRepository;
+import com.rkc.codeQualityAnalysis.repositories.CyclomaticComplexityRepository;
 import com.rkc.codeQualityAnalysis.repositories.PMDRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,10 @@ public class Parsers {
     private PMDRepository pmdRepository;
     @Autowired
     private CPDRepository cpdRepository;
+    @Autowired
+    private CyclomaticComplexityRepository cyclomaticComplexityRepository;
 
-    public void parseAndSave(InputStream inputStream, String type, String userName) {
+    public void parseAndSave(InputStream inputStream, String type, String userName,String requestId) {
 
         if ("pmd".equalsIgnoreCase(type)) {
 
@@ -54,7 +57,7 @@ public class Parsers {
                     }
 
                     pmd.setMessage(split[1]);
-
+                    pmd.setRequestId(requestId);
                     pmd.setUserName(userName);
 
                     pmds.add(pmd);
@@ -85,6 +88,7 @@ public class Parsers {
                     CheckStyle checkStyle = new CheckStyle();
 
                     checkStyle.setUserName(userName);
+                    checkStyle.setRequestId(requestId);
                     setErrorLevelAndFile(checkStyle, split[0]);
                     checkStyle.setCheckStyleCategory(split[1]);
                     checkStyle.setCheckstylesMessage(split[2]);
@@ -127,7 +131,7 @@ public class Parsers {
         }
     }
 
-    public void parseCPD(InputStream inputStream, String userName) {
+    public void parseCPD(InputStream inputStream, String userName,String requestId) {
 
         List<CPD> cpds = new ArrayList<>();
         try {
@@ -143,6 +147,7 @@ public class Parsers {
 
                     CPD cpd = new CPD();
                     cpd.setUserName(userName);
+                    cpd.setRequestId(requestId);
                     //set Token length
                     //line.split(" ")
 
@@ -178,9 +183,10 @@ public class Parsers {
         }
     }
 
-    public void parseCyclomatic(InputStream inputStream, String userName) {
+    public void parseCyclomatic(InputStream inputStream, String userName,String requestId) {
 
         List<CyclomaticComplexity> cyclomaticComplexities = new LinkedList<>();
+        HashMap<String,CyclomaticComplexity> filePathToCyclomaticComplexity = new HashMap<>();
 
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
@@ -189,8 +195,6 @@ public class Parsers {
 
             LinkedList<String> lines = new LinkedList<>();
 
-
-            HashMap<String,LinkedList<MethodCyclomatic>> fileNameToMethodCyclomatic = new HashMap<>();
 
             while ((line = br.readLine()) != null) {
 
@@ -202,11 +206,6 @@ public class Parsers {
                         while ((line = br.readLine())!= null && !line.endsWith("analyzed.")) {
 
                             if(line.endsWith(".java")){
-                                CyclomaticComplexity cyclomaticComplexity = new CyclomaticComplexity();
-                                cyclomaticComplexities.add(cyclomaticComplexity);
-
-                                cyclomaticComplexity.setType("method");
-
                                 String[] splits = line.split(" ");
                                 int i=0;
                                 while("".equalsIgnoreCase(splits[i++]));
@@ -236,10 +235,32 @@ public class Parsers {
                                      value6 = splits[i];
                                 }
 
+                                String[] split = value6.split("::");
 
-                                System.out.println(value1+" "+value2+" "+value3+" "+value4+" "+value5+" "+value6);
+                                String[] split1 = split[1].split("@");
+
+                                CyclomaticComplexity cyclomaticComplexity = new CyclomaticComplexity();
+                                cyclomaticComplexity.setRequestId(requestId);
+                                cyclomaticComplexity.setFileName(split1[0]);
+                                filePathToCyclomaticComplexity.putIfAbsent(split1[2],cyclomaticComplexity);
+
+                                cyclomaticComplexity.setType("method");
+
+                                cyclomaticComplexity = filePathToCyclomaticComplexity.get(split1[2]);
+
+                                MethodCyclomatic methodCyclomatic = new MethodCyclomatic();
+                                methodCyclomatic.setNLOC(value1);
+                                methodCyclomatic.setCCN(value2);
+                                methodCyclomatic.setTokenLength(value3);
+                                methodCyclomatic.setParam(value4);
+                                methodCyclomatic.setTokenLength(value5);
+                                methodCyclomatic.setLocation(value6);
+
+                                cyclomaticComplexity.getMethodCyclomatics().add(methodCyclomatic);
+
                             }
                         }
+
 
                     }
                 }
@@ -253,8 +274,47 @@ public class Parsers {
 
                         while ((line = br.readLine())!= null && !line.endsWith("=========================================================================================")) {
                             if(line.endsWith(".java")){
-                                String[] splits = line.split("\t");
-                                System.out.println(Arrays.toString(splits));
+
+                                String[] splits = line.split(" ");
+                                int i=0;
+                                while("".equalsIgnoreCase(splits[i++]));
+                                String value1 = splits[i-1];
+                                while("".equalsIgnoreCase(splits[i++]));
+                                String value2 = splits[i-1];
+                                while("".equalsIgnoreCase(splits[i++]));
+                                String value3 = splits[i-1];
+                                while("".equalsIgnoreCase(splits[i++]));
+                                String value4 = splits[i-1];
+                                if(i<=splits.length&&"".equalsIgnoreCase(splits[i])){
+                                    while("".equalsIgnoreCase(splits[i++]));
+                                }
+                                String value5 = splits[i-1];
+                                boolean isExecutedInsideLoop =false;
+                                if(i<=splits.length && "".equalsIgnoreCase(splits[i])){
+                                    while(i<= splits.length&& "".equalsIgnoreCase(splits[i++]));
+                                    isExecutedInsideLoop=true;
+
+                                }
+
+                                String value6 =null;
+
+                                if(isExecutedInsideLoop){
+                                    value6= splits[i-1];
+                                }else{
+                                    value6 = splits[i];
+                                }
+
+
+                                CyclomaticComplexity cyclomaticComplexity = new CyclomaticComplexity();
+                                cyclomaticComplexity.setFileName(value6);
+
+                                cyclomaticComplexity.setType("file");
+                                cyclomaticComplexity.setNLOC(value1);
+                                cyclomaticComplexity.setAvgNLOC(value2);
+                                cyclomaticComplexity.setAvgCCN(value3);
+                                cyclomaticComplexity.setAvgToken(value4);
+                                cyclomaticComplexity.setFunctionCount(value5);
+                                cyclomaticComplexities.add(cyclomaticComplexity);
                             }
                         }
 
@@ -263,7 +323,11 @@ public class Parsers {
 
             }
 
-
+            filePathToCyclomaticComplexity.entrySet().forEach(entrySet -> {
+                CyclomaticComplexity cyclomaticComplexity = entrySet.getValue();
+                cyclomaticComplexities.add(cyclomaticComplexity);
+            });
+            cyclomaticComplexityRepository.saveAll(cyclomaticComplexities);
         } catch (IOException e) {
             e.printStackTrace();
         }

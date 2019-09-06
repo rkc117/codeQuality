@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class PMD {
     @Id
     private String id;
+    private String requestId;
     private String userName;
     private String repository;
     private String fileName;
@@ -20,6 +21,14 @@ public class PMD {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
     public String getUserName() {
