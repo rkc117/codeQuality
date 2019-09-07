@@ -14,6 +14,7 @@ public class CyclomaticComplexity {
     private String requestId;
     private String type;
     private String fileName;
+    private String totalLines;
     private List<MethodCyclomatic> methodCyclomatics = new LinkedList<>();
     private String NLOC;
     private String AvgNLOC;
@@ -51,6 +52,14 @@ public class CyclomaticComplexity {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public String getTotalLines() {
+        return totalLines;
+    }
+
+    public void setTotalLines(String totalLines) {
+        this.totalLines = totalLines;
     }
 
     public List<MethodCyclomatic> getMethodCyclomatics() {

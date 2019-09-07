@@ -1,17 +1,15 @@
 package com.rkc.codeQualityAnalysis.payloads;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class CheckStylesReport {
+public class PMDReport {
 
     private String requestId;
     private String totalWarnings;
     private String averageWarnings;
     private String totalFiles;
-    private List<CheckStyleFileReport> checkStyleFileReports = new ArrayList<>();
-    private String score;
+    private List<PMDFileReport> pmdFileReports = new ArrayList<>();
 
     public String getRequestId() {
         return requestId;
@@ -45,19 +43,11 @@ public class CheckStylesReport {
         this.totalFiles = totalFiles;
     }
 
-    public List<CheckStyleFileReport> getCheckStyleFileReports() {
-        return checkStyleFileReports;
+    public List<PMDFileReport> getPmdFileReports() {
+        return pmdFileReports;
     }
 
-    public void setCheckStyleFileReports(List<CheckStyleFileReport> checkStyleFileReports) {
-        this.checkStyleFileReports = checkStyleFileReports;
-    }
-
-    public String getScore() {
-        return score;
-    }
-
-    public void setScore(String score) {
-        this.score = score;
+    public void setPmdFileReports(List<PMDFileReport> pmdFileReports) {
+        this.pmdFileReports = pmdFileReports;
     }
 }

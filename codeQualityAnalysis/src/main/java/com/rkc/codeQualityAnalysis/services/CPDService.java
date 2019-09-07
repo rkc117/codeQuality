@@ -1,6 +1,7 @@
 package com.rkc.codeQualityAnalysis.services;
 
 import com.rkc.codeQualityAnalysis.models.CPD;
+import com.rkc.codeQualityAnalysis.models.Files;
 import com.rkc.codeQualityAnalysis.parsers.Parsers;
 import com.rkc.codeQualityAnalysis.repositories.CPDRepository;
 import com.rkc.codeQualityAnalysis.repositories.CustomAggregationOperation;
@@ -9,12 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.print.Doc;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.List;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
 
@@ -32,13 +31,11 @@ public class CPDService {
 
     private static String CPD = "/home/rkc/Briefcase/spotbugs/pmd/pmd-bin-6.17.0/bin/run.sh cpd --minimum-tokens 40 --language java  --files %s";
 
-    public void runThroughCPD(String path, String gitHubUserName, String requestId) {
+    public void runThroughCPD(String path, String gitHubUserName, String requestId, List<Files> files) {
 
         try {
 
             String command = String.format(CPD, path);
-
-            System.out.println(command);
 
             Process process = Runtime.getRuntime().exec(command);
 
@@ -51,10 +48,13 @@ public class CPDService {
 
 
     //db.cpd.aggregate([{"$match":{"_id":ObjectId("5d72b531216d9153589bbe99")}},{"$unwind":"$duplicateFiles"},{"$group":{"_id":"$duplicateFiles.fileName","duplicatedAt":{$push:{"line":"$duplicateFiles.lineNumber","code":"$code"}}}}]).pretty()
-    public ResponseEntity<?> getCPD(String requestId) {
+    public List<Document> getCPD(String requestId, String userName) {
 
         Document match = new Document();
-        match.put("$match", new Document("requestId", requestId));
+        Document matchingCriteria = new Document("requestId", requestId);
+        matchingCriteria.put("userName", userName);
+
+        match.put("$match", matchingCriteria);
 
         Document unwind = new Document();
         unwind.put("$unwind", "$duplicateFiles");
@@ -77,11 +77,7 @@ public class CPDService {
         );
 
         AggregationResults<Document> aggregate = mongoTemplate.aggregate(agg, CPD.class, Document.class);
-        return ResponseEntity.ok(new HashMap<>() {{
-            put("data", aggregate.getMappedResults());
-            put("message", "success");
-            put("status", 200);
-        }});
+        return aggregate.getMappedResults();
     }
 
 }

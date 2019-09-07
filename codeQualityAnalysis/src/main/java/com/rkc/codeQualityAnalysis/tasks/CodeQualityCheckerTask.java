@@ -1,11 +1,13 @@
 package com.rkc.codeQualityAnalysis.tasks;
 
 import com.rkc.codeQualityAnalysis.factories.SpringFactory;
+import com.rkc.codeQualityAnalysis.models.GitHubUserCodeQuality;
+import com.rkc.codeQualityAnalysis.repositories.FilesRepository;
+import com.rkc.codeQualityAnalysis.repositories.GitHubUserCodeQualityRepository;
 import com.rkc.codeQualityAnalysis.services.*;
 import com.rkc.codeQualityAnalysis.utils.JarCreater;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.springframework.web.context.request.RequestContextHolder;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,7 +15,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -21,10 +25,12 @@ public class CodeQualityCheckerTask implements Runnable {
 
     private String requestId;
     private String gitRepositoryPath;
+    private GitHubUserCodeQuality gitHubUserCodeQuality;
 
-    public CodeQualityCheckerTask(String requestId, String gitRepositoryPath) {
+    public CodeQualityCheckerTask(String requestId, String gitRepositoryPath,GitHubUserCodeQuality gitHubUserCodeQuality) {
         this.requestId = requestId;
         this.gitRepositoryPath = gitRepositoryPath;
+        this.gitHubUserCodeQuality=gitHubUserCodeQuality;
     }
 
     @Override
@@ -35,6 +41,8 @@ public class CodeQualityCheckerTask implements Runnable {
         CPDService cpdService = SpringFactory.getContext().getBean(CPDService.class);
         CyclomaticService cyclomaticService = SpringFactory.getContext().getBean(CyclomaticService.class);
         SpotBugService spotBugService = SpringFactory.getContext().getBean(SpotBugService.class);
+        FilesRepository filesRepository = SpringFactory.getContext().getBean(FilesRepository.class);
+        GitHubUserCodeQualityRepository gitHubUserCodeQualityRepository = SpringFactory.getContext().getBean(GitHubUserCodeQualityRepository.class);
 
         String s = gitRepositoryPath;
 
@@ -61,6 +69,7 @@ public class CodeQualityCheckerTask implements Runnable {
             }
 
             String identifier = call.getRepository().getIdentifier();
+
         }
 
         File folder = new File(path);
@@ -69,26 +78,35 @@ public class CodeQualityCheckerTask implements Runnable {
 
         HashMap<String, String> filePathToFileName = new HashMap<>();
 
-        //collect all java files in a map
-        for (File file : files) {
-            if (file.isFile()) {
+        List<com.rkc.codeQualityAnalysis.models.Files> filesToSave = new ArrayList<>();
+        long totalLinesInRepos = 0l;
 
-                if (file.getName().endsWith(".java")) {
-                    filePathToFileName.put(file.getAbsolutePath(), file.getName());
-                }
-            } else {
-                copyJavaFileFromFolder(file, filePathToFileName);
-            }
-        }
+        //collect all java files in a map
+
+        RecursionData recursionData = new RecursionData();
+        recursionData.files =filesToSave;
+        recursionData.totalLines=0l;
+        copyJavaFileFromFolder(folder, filePathToFileName,recursionData);
+
+        //save all files path and line Number
+        filesRepository.saveAll(filesToSave);
+        gitHubUserCodeQuality.setUserName(gitHubUserName);
+        gitHubUserCodeQuality.setRequestId(requestId);
+        gitHubUserCodeQuality.setGitHubRepoUrl(gitRepositoryPath);
+        gitHubUserCodeQuality.setTotalLines(String.valueOf(totalLinesInRepos));
+        gitHubUserCodeQuality.setTotalNumberFiles(String.valueOf(filesToSave.size()));
+        gitHubUserCodeQuality.setAverageLines(String.valueOf(recursionData.totalLines/filesToSave.size()));
+
+        gitHubUserCodeQualityRepository.save(gitHubUserCodeQuality);
 
         //Checkstyle
-        //checkStylesService.checkStyles(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName, requestId);
+        checkStylesService.checkStyles(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName, requestId,filesToSave);
 
         //PMD
-        //pmdService.runThroughPMD(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName,requestId);
+        pmdService.runThroughPMD(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName,requestId,filesToSave);
 
         //CPD
-       // cpdService.runThroughCPD(path, gitHubUserName,requestId);
+        cpdService.runThroughCPD(path, gitHubUserName,requestId,filesToSave);
 
         //cyclomatic
         cyclomaticService.generateCyclomaticComplexity(path, gitHubUserName,requestId);
@@ -109,7 +127,7 @@ public class CodeQualityCheckerTask implements Runnable {
         //methodCallGraphService.generateMethodCallGraph(jarFilePath,gitHubUserName);
     }
 
-    private void copyJavaFileFromFolder(File folder, HashMap<String, String> filePathToFileName) {
+    private void copyJavaFileFromFolder(File folder, HashMap<String, String> filePathToFileName,RecursionData recursionData) {
         File[] files = folder.listFiles();
 
         //collect all java files in a map
@@ -117,10 +135,22 @@ public class CodeQualityCheckerTask implements Runnable {
             if (file.isFile()) {
 
                 if (file.getName().endsWith(".java")) {
+                    try {
+                        com.rkc.codeQualityAnalysis.models.Files files1 = new com.rkc.codeQualityAnalysis.models.Files();
+                        files1.setId(file.getAbsolutePath());
+                        files1.setName(file.getName());
+                        int i = countNumberOfLineInFile(file);
+                        files1.setTotalNumberLines(String.valueOf(i));
+                        recursionData.files.add(files1);
+                        recursionData.totalLines+=i;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     filePathToFileName.put(file.getAbsolutePath(), file.getName());
                 }
             } else {
-                copyJavaFileFromFolder(file, filePathToFileName);
+                copyJavaFileFromFolder(file, filePathToFileName,recursionData);
             }
         }
     }
@@ -139,5 +169,11 @@ public class CodeQualityCheckerTask implements Runnable {
         return linecount;
     }
 
+    static class RecursionData{
+         Long totalLines=0l;
+        List<com.rkc.codeQualityAnalysis.models.Files> files;
+
+
+    }
 
 }

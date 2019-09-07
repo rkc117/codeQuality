@@ -1,6 +1,8 @@
 package com.rkc.codeQualityAnalysis.services;
 
 import com.rkc.codeQualityAnalysis.models.CheckStyle;
+import com.rkc.codeQualityAnalysis.models.Files;
+import com.rkc.codeQualityAnalysis.models.PMD;
 import com.rkc.codeQualityAnalysis.parsers.Parsers;
 import com.rkc.codeQualityAnalysis.repositories.CustomAggregationOperation;
 import org.bson.Document;
@@ -27,7 +29,7 @@ public class PMDService {
 
     private static String PMD = "/home/rkc/Briefcase/spotbugs/pmd/pmd-bin-6.17.0/bin/run.sh pmd -d  %s -f text -R rulesets/java/quickstart.xml";
 
-    public void runThroughPMD(List<String> filePaths, String gitHubUserName, String requestId) {
+    public void runThroughPMD(List<String> filePaths, String gitHubUserName, String requestId, List<Files> files) {
 
         for (String filePath : filePaths) {
 
@@ -37,7 +39,7 @@ public class PMDService {
 
                 Process process = Runtime.getRuntime().exec(command);
 
-                parsers.parseAndSave(process.getInputStream(), "pmd", gitHubUserName,requestId);
+                parsers.parseAndSave(process.getInputStream(), "pmd", gitHubUserName,requestId,files);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -46,10 +48,16 @@ public class PMDService {
     }
 
     // db.pmd.aggregate([{"$match":{"requestId":"5d72b264216d9153589bad28"}},{"$group":{"_id":"$fileName","message":{"$push":{"line":"$lineNumber","message":"$message"}}}}])
-    public ResponseEntity<?> getPMD(String requestId) {
+    public List<Document> getPMD(String requestId,String userName) {
 
         Document matchOperation = new Document();
-        matchOperation.put("$match", new Document("requestId", requestId));
+        Document matchCriteria = new Document();
+        matchCriteria.put("requestId", requestId);
+        if(userName!= null){
+            matchCriteria.put("userName", userName);
+        }
+
+        matchOperation.put("$match",matchCriteria );
 
         Document groupOperation = new Document();
 
@@ -62,18 +70,24 @@ public class PMDService {
 
         group.put("pmdAt", new Document("$push", push));
 
+        Document totalLines = new Document();
+        totalLines.put("$first", "$totalLines");
+
+        group.put("totalLines", totalLines);
+
+        Document totalCounts = new Document();
+        totalCounts.put("$sum", 1);
+
+        group.put("totalCounts", totalCounts);
+
         groupOperation.put("$group",group);
 
         TypedAggregation<Document> agg = newAggregation(Document.class,
                 new CustomAggregationOperation(matchOperation), new CustomAggregationOperation(groupOperation)
         );
 
-        AggregationResults<Document> aggregate = mongoTemplate.aggregate(agg, CheckStyle.class, Document.class);
-        return ResponseEntity.ok(new HashMap<>() {{
-            put("data", aggregate.getMappedResults());
-            put("message", "success");
-            put("status", 200);
-        }});
+        AggregationResults<Document> aggregate = mongoTemplate.aggregate(agg, PMD.class, Document.class);
+        return aggregate.getMappedResults();
 
     }
 }

@@ -11,6 +11,7 @@ public class PMD {
     private String userName;
     private String repository;
     private String fileName;
+    private String totalLines;
     private String lineNumber;
     private String message;
     private String category;
@@ -53,6 +54,14 @@ public class PMD {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public String getTotalLines() {
+        return totalLines;
+    }
+
+    public void setTotalLines(String totalLines) {
+        this.totalLines = totalLines;
     }
 
     public String getLineNumber() {

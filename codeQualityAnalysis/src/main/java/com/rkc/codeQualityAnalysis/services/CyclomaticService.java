@@ -3,7 +3,6 @@ package com.rkc.codeQualityAnalysis.services;
 import com.rkc.codeQualityAnalysis.models.CyclomaticComplexity;
 import com.rkc.codeQualityAnalysis.parsers.Parsers;
 import com.rkc.codeQualityAnalysis.repositories.CyclomaticComplexityRepository;
-import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -43,8 +42,10 @@ public class CyclomaticService {
 
         List<CyclomaticComplexity> file = cyclomaticComplexityRepository.findAllByType("file");
         List<CyclomaticComplexity> method = cyclomaticComplexityRepository.findAllByType("method");
+
         //db.cyclomaticComplexity.find({"type":"file"})
         //db.cyclomaticComplexity.find({"type":"method"})
+
         return null;
     }
 }

@@ -17,6 +17,8 @@ public class CheckStyle {
 
     private String fileName;
 
+    private String totalLines;
+
     private String rowNumber;
 
     private String colNumber;
@@ -61,6 +63,14 @@ public class CheckStyle {
 
     public String getFileName() {
         return fileName;
+    }
+
+    public String getTotalLines() {
+        return totalLines;
+    }
+
+    public void setTotalLines(String totalLines) {
+        this.totalLines = totalLines;
     }
 
     public void setFileName(String fileName) {

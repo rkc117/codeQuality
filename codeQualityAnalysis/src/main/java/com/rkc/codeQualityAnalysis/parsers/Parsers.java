@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class Parsers {
@@ -23,9 +25,11 @@ public class Parsers {
     @Autowired
     private CyclomaticComplexityRepository cyclomaticComplexityRepository;
 
-    public void parseAndSave(InputStream inputStream, String type, String userName,String requestId) {
+    public void parseAndSave(InputStream inputStream, String type, String userName,String requestId,List<Files> files) {
 
         if ("pmd".equalsIgnoreCase(type)) {
+
+            Map<String, Files> filePathToFilesMap = files.stream().parallel().collect(Collectors.toMap(Files::getId, Function.identity()));
 
             List<PMD> pmds = new ArrayList<>();
             try {
@@ -59,7 +63,7 @@ public class Parsers {
                     pmd.setMessage(split[1]);
                     pmd.setRequestId(requestId);
                     pmd.setUserName(userName);
-
+                    pmd.setTotalLines(String.valueOf(filePathToFilesMap.get(split1[0]).getTotalNumberLines()));
                     pmds.add(pmd);
                 }
             } catch (IOException e) {
@@ -71,6 +75,8 @@ public class Parsers {
         if ("checkstyles".equalsIgnoreCase(type)) {
 
             List<CheckStyle> checkStyles = new ArrayList<>();
+
+            Map<String, Files> filePathToFilesMap = files.stream().parallel().collect(Collectors.toMap(Files::getId, Function.identity()));
 
             try {
 
@@ -93,6 +99,7 @@ public class Parsers {
                     checkStyle.setCheckStyleCategory(split[1]);
                     checkStyle.setCheckstylesMessage(split[2]);
                     setCategory(checkStyle, split[2]);
+                    checkStyle.setTotalLines(String.valueOf(filePathToFilesMap.get(checkStyle.getFileName()).getTotalNumberLines()));
                     checkStyles.add(checkStyle);
                 }
 

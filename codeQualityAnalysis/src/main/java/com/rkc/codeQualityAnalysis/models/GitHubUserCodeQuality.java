@@ -1,14 +1,18 @@
 package com.rkc.codeQualityAnalysis.models;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection = "gitHubUserCodeQuality")
 public class GitHubUserCodeQuality {
 
     private String id;
+    private String requestId;
     private String userName;
     private String gitHubRepoUrl;
     private String totalLines;
+    private String totalNumberFiles;
     private String averageLines;
     private String averageMaintainability;
-    private String linesOfCodeUrl;
     private String maintainabilityUrl;
     private String filesUrl;
     private String checkStyleUrl;
@@ -16,6 +20,9 @@ public class GitHubUserCodeQuality {
     private String cpdUrl;
     private String cyclomaticUrl;
     private String spotBugsUrl;
+    private Object pmds;
+    private Object cpds;
+    private Object checkstyles;
     private Float score;
 
     public String getId() {
@@ -24,6 +31,14 @@ public class GitHubUserCodeQuality {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
     public String getUserName() {
@@ -66,12 +81,12 @@ public class GitHubUserCodeQuality {
         this.averageMaintainability = averageMaintainability;
     }
 
-    public String getLinesOfCodeUrl() {
-        return linesOfCodeUrl;
+    public String getTotalNumberFiles() {
+        return totalNumberFiles;
     }
 
-    public void setLinesOfCodeUrl(String linesOfCodeUrl) {
-        this.linesOfCodeUrl = linesOfCodeUrl;
+    public void setTotalNumberFiles(String totalNumberFiles) {
+        this.totalNumberFiles = totalNumberFiles;
     }
 
     public String getMaintainabilityUrl() {
@@ -128,6 +143,30 @@ public class GitHubUserCodeQuality {
 
     public void setSpotBugsUrl(String spotBugsUrl) {
         this.spotBugsUrl = spotBugsUrl;
+    }
+
+    public Object getPmds() {
+        return pmds;
+    }
+
+    public void setPmds(Object pmds) {
+        this.pmds = pmds;
+    }
+
+    public Object getCpds() {
+        return cpds;
+    }
+
+    public void setCpds(Object cpds) {
+        this.cpds = cpds;
+    }
+
+    public Object getCheckstyles() {
+        return checkstyles;
+    }
+
+    public void setCheckstyles(Object checkstyles) {
+        this.checkstyles = checkstyles;
     }
 
     public Float getScore() {
