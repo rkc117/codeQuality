@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.print.Doc;
 import java.io.IOException;
+import java.util.HashMap;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
 
@@ -76,7 +77,11 @@ public class CPDService {
         );
 
         AggregationResults<Document> aggregate = mongoTemplate.aggregate(agg, CPD.class, Document.class);
-        return ResponseEntity.ok(aggregate.getMappedResults());
+        return ResponseEntity.ok(new HashMap<>() {{
+            put("data", aggregate.getMappedResults());
+            put("message", "success");
+            put("status", 200);
+        }});
     }
 
 }
