@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.HashMap;
-import java.util.List;
 
 @Controller
 public class EntryController {
@@ -18,10 +18,15 @@ public class EntryController {
     @Autowired
     private CodeQualityCheckerService codeQualityCheckerService;
 
-    @GetMapping("/check")
+    @PostMapping("/codeQuality/check")
     public ResponseEntity<?> check(@RequestBody CodeQualityCheckRequest codeQualityCheckRequest) {
 
         return codeQualityCheckerService.check(codeQualityCheckRequest);
+    }
+
+    @GetMapping("/codeQuality/result/{requestId}")
+    public ResponseEntity<?> getResults(@PathVariable("requestId")  String requestId){
+        return codeQualityCheckerService.getResult(requestId);
     }
 
 }

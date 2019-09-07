@@ -32,18 +32,24 @@ public class CodeQualityCheckerService {
 
         codeQualityCheckRecordRepository.save(codeQualityCheckRecord);
 
-        for (KeyValue keyValue : codeQualityCheckRequest.getKeyValues()) {
+        for (String gitRepo : codeQualityCheckRequest.getGitRepos()) {
 
-            CodeQualityCheckerTask codeQualityCheckerTask = new CodeQualityCheckerTask(requestId, keyValue.getValue());
+            CodeQualityCheckerTask codeQualityCheckerTask = new CodeQualityCheckerTask(requestId, gitRepo);
             executorService.execute(codeQualityCheckerTask);
 
         }
 
         return ResponseEntity.accepted().body(new HashMap<>() {{
-            put("data", requestId.toString());
+            put("data", requestId);
             put("message", "success");
             put("status", 200);
             put("info", new HashMap<>());
         }});
+    }
+
+    public ResponseEntity<?> getResult(String requestId) {
+
+        return null;
+
     }
 }

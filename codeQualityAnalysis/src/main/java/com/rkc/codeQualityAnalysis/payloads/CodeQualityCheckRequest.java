@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CodeQualityCheckRequest {
-    List<KeyValue> keyValues = new ArrayList<>();
+    List<String> gitRepos = new ArrayList<>();
 
-    public List<KeyValue> getKeyValues() {
-        return keyValues;
+    public List<String> getGitRepos() {
+        return gitRepos;
     }
 
-    public void setKeyValues(List<KeyValue> keyValues) {
-        this.keyValues = keyValues;
+    public void setGitRepos(List<String> gitRepos) {
+        this.gitRepos = gitRepos;
     }
 }

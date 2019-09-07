@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
@@ -75,6 +76,10 @@ public class CheckStylesService {
         );
 
         AggregationResults<Document> aggregate = mongoTemplate.aggregate(agg, CheckStyle.class, Document.class);
-        return ResponseEntity.ok(aggregate.getMappedResults());
+        return ResponseEntity.ok(new HashMap<>() {{
+            put("data", aggregate.getMappedResults());
+            put("message", "success");
+            put("status", 200);
+        }});
     }
 }
