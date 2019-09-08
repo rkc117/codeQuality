@@ -23,6 +23,7 @@ public class GitHubUserCodeQuality {
     private Object pmds;
     private Object cpds;
     private Object checkstyles;
+    private Object cyclomatics;
     private Float score;
 
     public String getId() {
@@ -175,5 +176,13 @@ public class GitHubUserCodeQuality {
 
     public void setScore(Float score) {
         this.score = score;
+    }
+
+    public Object getCyclomatics() {
+        return cyclomatics;
+    }
+
+    public void setCyclomatics(Object cyclomatics) {
+        this.cyclomatics = cyclomatics;
     }
 }

@@ -138,12 +138,12 @@ public class Parsers {
         }
     }
 
-    public void parseCPD(InputStream inputStream, String userName,String requestId) {
+    public void parseCPD(InputStream inputStream, String userName,String requestId,List<Files> files) {
 
         List<CPD> cpds = new ArrayList<>();
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-
+            Map<String, Files> filePathToFilesMap = files.stream().parallel().collect(Collectors.toMap(Files::getId, Function.identity()));
             String line;
 
             LinkedList<String> lines = new LinkedList<>();
@@ -170,6 +170,7 @@ public class Parsers {
                                 duplicateFile.setFileName(splits[5]);
                                 duplicateFile.setLineNumber(splits[3]);
                                 cpd.getDuplicateFiles().add(duplicateFile);
+                                duplicateFile.setTotalLines(String.valueOf(filePathToFilesMap.get(duplicateFile.getFileName()).getTotalNumberLines()));
 
                             }
                             continue;

@@ -43,6 +43,7 @@ public class CodeQualityCheckerTask implements Runnable {
         SpotBugService spotBugService = SpringFactory.getContext().getBean(SpotBugService.class);
         FilesRepository filesRepository = SpringFactory.getContext().getBean(FilesRepository.class);
         GitHubUserCodeQualityRepository gitHubUserCodeQualityRepository = SpringFactory.getContext().getBean(GitHubUserCodeQualityRepository.class);
+        ProfileService profileService = SpringFactory.getContext().getBean(ProfileService.class);
 
         String s = gitRepositoryPath;
 
@@ -50,8 +51,6 @@ public class CodeQualityCheckerTask implements Runnable {
         String[] split = substring.split("/");
         String gitHubUserName = split[1];
         String path = "/home/rkc/Briefcase/spotbugs/gitHubDownloadedRepos/" + split[1];
-
-      //  RequestContextHolder.getRequestAttributes().setAttribute("JavaFilePath", path, 0);
 
         if (Files.notExists(Path.of(path))) {
             File file = new File(path);
@@ -93,9 +92,14 @@ public class CodeQualityCheckerTask implements Runnable {
         gitHubUserCodeQuality.setUserName(gitHubUserName);
         gitHubUserCodeQuality.setRequestId(requestId);
         gitHubUserCodeQuality.setGitHubRepoUrl(gitRepositoryPath);
-        gitHubUserCodeQuality.setTotalLines(String.valueOf(totalLinesInRepos));
+        gitHubUserCodeQuality.setTotalLines(String.valueOf(recursionData.totalLines));
         gitHubUserCodeQuality.setTotalNumberFiles(String.valueOf(filesToSave.size()));
-        gitHubUserCodeQuality.setAverageLines(String.valueOf(recursionData.totalLines/filesToSave.size()));
+
+        if(filesToSave.size()>0){
+            gitHubUserCodeQuality.setAverageLines(String.valueOf(recursionData.totalLines/filesToSave.size()));
+        }else{
+            gitHubUserCodeQuality.setAverageLines("0");
+        }
 
         gitHubUserCodeQualityRepository.save(gitHubUserCodeQuality);
 
@@ -111,14 +115,17 @@ public class CodeQualityCheckerTask implements Runnable {
         //cyclomatic
         cyclomaticService.generateCyclomaticComplexity(path, gitHubUserName,requestId);
 
+        //calculate github profile score
+        profileService.getGitHubProfileInfo(gitHubUserName, null);
+
         // halstead complexity
 
-        String jarFilePath = null;
+       /* String jarFilePath = null;
         try {
             jarFilePath = JarCreater.createJar(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName, "/tmp/");
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
         //FindBugs
        // spotBugService.runThroughSpotBug(jarFilePath, gitHubUserName,requestId);
@@ -139,6 +146,7 @@ public class CodeQualityCheckerTask implements Runnable {
                         com.rkc.codeQualityAnalysis.models.Files files1 = new com.rkc.codeQualityAnalysis.models.Files();
                         files1.setId(file.getAbsolutePath());
                         files1.setName(file.getName());
+                        files1.setRequestId(requestId);
                         int i = countNumberOfLineInFile(file);
                         files1.setTotalNumberLines(String.valueOf(i));
                         recursionData.files.add(files1);

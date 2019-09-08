@@ -29,7 +29,7 @@ public class CPDService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    private static String CPD = "/home/rkc/Briefcase/spotbugs/pmd/pmd-bin-6.17.0/bin/run.sh cpd --minimum-tokens 40 --language java  --files %s";
+    private static String CPD = "/home/rkc/Briefcase/spotbugs/pmd/pmd-bin-6.17.0/bin/run.sh cpd --minimum-tokens 100 --language java  --files %s";
 
     public void runThroughCPD(String path, String gitHubUserName, String requestId, List<Files> files) {
 
@@ -39,7 +39,7 @@ public class CPDService {
 
             Process process = Runtime.getRuntime().exec(command);
 
-            parsers.parseCPD(process.getInputStream(), gitHubUserName, requestId);
+            parsers.parseCPD(process.getInputStream(), gitHubUserName, requestId,files);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,8 +66,19 @@ public class CPDService {
         group.put("_id", "$duplicateFiles.fileName");
 
         Document push = new Document();
-        push.put("line", "$duplicateFiles.lineNumber");
-        push.put("code", "$code");
+        push.put("lineNumber", "$duplicateFiles.lineNumber");
+        push.put("message", "$code");
+
+        Document totalLines = new Document();
+        totalLines.put("$first", "$duplicateFiles.totalLines");
+
+
+        group.put("totalLines", totalLines);
+
+        Document totalCounts = new Document();
+        totalCounts.put("$sum", 1);
+
+        group.put("totalCounts", totalCounts);
 
         group.put("duplicatedAt", new Document("$push", push));
 

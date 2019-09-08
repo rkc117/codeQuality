@@ -8,6 +8,7 @@ public class Files {
 
     @Id
     private String id;
+    private String requestId;
     private String name;
     private String totalNumberLines;
 
@@ -18,6 +19,14 @@ public class Files {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
     public String getName() {

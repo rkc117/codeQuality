@@ -68,9 +68,9 @@ public class CheckStylesService {
         group.put("_id", "$fileName");
 
         Document push = new Document();
-        push.put("rowNumber", "$rowNumber");
+        push.put("lineNumber", "$rowNumber");
         push.put("colNumber", "$colNumber");
-        push.put("meaagse", "$checkstylesMessage");
+        push.put("message", "$checkstylesMessage");
 
         group.put("results", new Document("$push", push));
         groupOperation.put("$group", group);

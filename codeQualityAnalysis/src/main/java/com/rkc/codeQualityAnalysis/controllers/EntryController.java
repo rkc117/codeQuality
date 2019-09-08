@@ -1,6 +1,5 @@
 package com.rkc.codeQualityAnalysis.controllers;
 
-
 import com.rkc.codeQualityAnalysis.payloads.CodeQualityCheckRequest;
 import com.rkc.codeQualityAnalysis.services.CodeQualityCheckerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +22,13 @@ public class EntryController {
     }
 
     @GetMapping("/codeQuality/result/{requestId}")
-    public ResponseEntity<?> getResults(@PathVariable("requestId")  String requestId){
-        return codeQualityCheckerService.getResult(requestId);
+    public ResponseEntity<?> getResults(@PathVariable("requestId")  String requestId,@RequestParam(value = "currentTime",required = false) String currentTime){
+        return codeQualityCheckerService.getResult(requestId,currentTime);
+    }
+
+    @GetMapping("/codeQuality/files/{requestId}")
+    public ResponseEntity<?> getFileDetails(@PathVariable("requestId")  String requestId){
+        return codeQualityCheckerService.getFiles(requestId);
     }
 
 }
