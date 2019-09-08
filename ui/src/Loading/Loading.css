@@ -1,0 +1,8 @@
+.Loading img {
+  display: block;
+  margin: 0 auto;
+}
+
+.Loading p {
+  text-align: center;
+}
