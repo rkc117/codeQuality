@@ -3,6 +3,7 @@ package com.rkc.codeQualityAnalysis.services;
 import com.rkc.codeQualityAnalysis.models.CyclomaticComplexity;
 import com.rkc.codeQualityAnalysis.parsers.Parsers;
 import com.rkc.codeQualityAnalysis.repositories.CyclomaticComplexityRepository;
+import com.rkc.codeQualityAnalysis.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class CyclomaticService {
             Process process = Runtime.getRuntime().exec(command);
 
             parsers.parseCyclomatic(process.getInputStream(), userName, requestId);
-
+            Utils.printStream(process.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -36,6 +37,6 @@ public class CyclomaticService {
     }
 
     public List<CyclomaticComplexity> getCyclomaticComplexity(String requestId, String type) {
-        return cyclomaticComplexityRepository.findAllByType(type);
+        return cyclomaticComplexityRepository.findByRequestIdAndType(requestId,type);
     }
 }

@@ -175,15 +175,6 @@ public class CodeQualityCheckerService {
 
     }
 
-    private Float getRandomScore(int i, int i1) {
-        Random r = new Random();
-        int low = 10;
-        int high = 100;
-        int result = r.nextInt(high - low) + low;
-
-        return result + 0.00001f;
-    }
-
     public ResponseEntity<?> getFiles(String requestId) {
         return ResponseEntity.ok(new HashMap<>() {{
 

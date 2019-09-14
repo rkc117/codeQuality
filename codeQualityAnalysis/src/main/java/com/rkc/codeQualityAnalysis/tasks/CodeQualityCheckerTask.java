@@ -26,11 +26,19 @@ public class CodeQualityCheckerTask implements Runnable {
     private String requestId;
     private String gitRepositoryPath;
     private GitHubUserCodeQuality gitHubUserCodeQuality;
+    private String userName;
 
-    public CodeQualityCheckerTask(String requestId, String gitRepositoryPath,GitHubUserCodeQuality gitHubUserCodeQuality) {
+    public CodeQualityCheckerTask(String requestId, String gitRepositoryPath, GitHubUserCodeQuality gitHubUserCodeQuality) {
         this.requestId = requestId;
         this.gitRepositoryPath = gitRepositoryPath;
-        this.gitHubUserCodeQuality=gitHubUserCodeQuality;
+        this.gitHubUserCodeQuality = gitHubUserCodeQuality;
+    }
+
+    public CodeQualityCheckerTask(String requestId, String gitRepositoryPath, GitHubUserCodeQuality gitHubUserCodeQuality, String userName) {
+        this.requestId = requestId;
+        this.gitRepositoryPath = gitRepositoryPath;
+        this.gitHubUserCodeQuality = gitHubUserCodeQuality;
+        this.userName = userName;
     }
 
     @Override
@@ -44,6 +52,14 @@ public class CodeQualityCheckerTask implements Runnable {
         FilesRepository filesRepository = SpringFactory.getContext().getBean(FilesRepository.class);
         GitHubUserCodeQualityRepository gitHubUserCodeQualityRepository = SpringFactory.getContext().getBean(GitHubUserCodeQualityRepository.class);
         ProfileService profileService = SpringFactory.getContext().getBean(ProfileService.class);
+
+
+        //if username is not null get all java repositories
+        if(userName!= null){
+
+        }
+
+
 
         String s = gitRepositoryPath;
 
@@ -83,9 +99,9 @@ public class CodeQualityCheckerTask implements Runnable {
         //collect all java files in a map
 
         RecursionData recursionData = new RecursionData();
-        recursionData.files =filesToSave;
-        recursionData.totalLines=0l;
-        copyJavaFileFromFolder(folder, filePathToFileName,recursionData);
+        recursionData.files = filesToSave;
+        recursionData.totalLines = 0l;
+        copyJavaFileFromFolder(folder, filePathToFileName, recursionData);
 
         //save all files path and line Number
         filesRepository.saveAll(filesToSave);
@@ -95,25 +111,25 @@ public class CodeQualityCheckerTask implements Runnable {
         gitHubUserCodeQuality.setTotalLines(String.valueOf(recursionData.totalLines));
         gitHubUserCodeQuality.setTotalNumberFiles(String.valueOf(filesToSave.size()));
 
-        if(filesToSave.size()>0){
-            gitHubUserCodeQuality.setAverageLines(String.valueOf(recursionData.totalLines/filesToSave.size()));
-        }else{
+        if (filesToSave.size() > 0) {
+            gitHubUserCodeQuality.setAverageLines(String.valueOf(recursionData.totalLines / filesToSave.size()));
+        } else {
             gitHubUserCodeQuality.setAverageLines("0");
         }
 
         gitHubUserCodeQualityRepository.save(gitHubUserCodeQuality);
 
         //Checkstyle
-        checkStylesService.checkStyles(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName, requestId,filesToSave);
+        checkStylesService.checkStyles(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName, requestId, filesToSave);
 
         //PMD
-        pmdService.runThroughPMD(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName,requestId,filesToSave);
+        pmdService.runThroughPMD(filePathToFileName.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()), gitHubUserName, requestId, filesToSave);
 
         //CPD
-        cpdService.runThroughCPD(path, gitHubUserName,requestId,filesToSave);
+        cpdService.runThroughCPD(path, gitHubUserName, requestId, filesToSave);
 
         //cyclomatic
-        cyclomaticService.generateCyclomaticComplexity(path, gitHubUserName,requestId);
+        cyclomaticService.generateCyclomaticComplexity(path, gitHubUserName, requestId);
 
         //calculate github profile score
         profileService.getGitHubProfileInfo(gitHubUserName, null);
@@ -128,13 +144,13 @@ public class CodeQualityCheckerTask implements Runnable {
         }*/
 
         //FindBugs
-       // spotBugService.runThroughSpotBug(jarFilePath, gitHubUserName,requestId);
+        // spotBugService.runThroughSpotBug(jarFilePath, gitHubUserName,requestId);
 
         //MethodCall Graph Service
         //methodCallGraphService.generateMethodCallGraph(jarFilePath,gitHubUserName);
     }
 
-    private void copyJavaFileFromFolder(File folder, HashMap<String, String> filePathToFileName,RecursionData recursionData) {
+    private void copyJavaFileFromFolder(File folder, HashMap<String, String> filePathToFileName, RecursionData recursionData) {
         File[] files = folder.listFiles();
 
         //collect all java files in a map
@@ -150,7 +166,7 @@ public class CodeQualityCheckerTask implements Runnable {
                         int i = countNumberOfLineInFile(file);
                         files1.setTotalNumberLines(String.valueOf(i));
                         recursionData.files.add(files1);
-                        recursionData.totalLines+=i;
+                        recursionData.totalLines += i;
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -158,7 +174,7 @@ public class CodeQualityCheckerTask implements Runnable {
                     filePathToFileName.put(file.getAbsolutePath(), file.getName());
                 }
             } else {
-                copyJavaFileFromFolder(file, filePathToFileName,recursionData);
+                copyJavaFileFromFolder(file, filePathToFileName, recursionData);
             }
         }
     }
@@ -177,8 +193,8 @@ public class CodeQualityCheckerTask implements Runnable {
         return linecount;
     }
 
-    static class RecursionData{
-         Long totalLines=0l;
+    static class RecursionData {
+        Long totalLines = 0l;
         List<com.rkc.codeQualityAnalysis.models.Files> files;
 
 

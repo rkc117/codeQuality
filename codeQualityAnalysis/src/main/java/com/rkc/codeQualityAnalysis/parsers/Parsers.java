@@ -317,6 +317,7 @@ public class Parsers {
                                 cyclomaticComplexity.setFileName(value6);
 
                                 cyclomaticComplexity.setType("file");
+                                cyclomaticComplexity.setRequestId(requestId);
                                 cyclomaticComplexity.setNLOC(value1);
                                 cyclomaticComplexity.setAvgNLOC(value2);
                                 cyclomaticComplexity.setAvgCCN(value3);
@@ -331,14 +332,14 @@ public class Parsers {
 
             }
 
-            filePathToCyclomaticComplexity.entrySet().forEach(entrySet -> {
-                CyclomaticComplexity cyclomaticComplexity = entrySet.getValue();
-                cyclomaticComplexities.add(cyclomaticComplexity);
-            });
-            cyclomaticComplexityRepository.saveAll(cyclomaticComplexities);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+        filePathToCyclomaticComplexity.entrySet().forEach(entrySet -> {
+            CyclomaticComplexity cyclomaticComplexity = entrySet.getValue();
+            cyclomaticComplexities.add(cyclomaticComplexity);
+        });
+        cyclomaticComplexityRepository.saveAll(cyclomaticComplexities);
     }
 }

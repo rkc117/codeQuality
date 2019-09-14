@@ -68,13 +68,13 @@ public class ProfileService {
 		case "STARGAZERS_COUNT" :
 		case "FORK_COUNT" 	: 
 		case "WATCHERS_COUNT" :	float f_count = (float)object;
-								return (f_count)/(500);
+								return (f_count)/(1000);
 		case "HAS_ISSUES" : return (boolean)object?0l:1l;
 		case "HAS_DOWNLOADS" : 
 		case "HAS_WIKI" 	: 
 		case "HAS_PAGES" 	: return (boolean)object?1l:0l;
 		case "OPEN_ISSUES_COUNT" : float count = (float)object;
-								   return (count)/(500);
+								   return (count)/(1000);
 		default : return 0l;
 		}
 	}
