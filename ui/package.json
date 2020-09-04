@@ -11,7 +11,7 @@
     "final-form": "^4.18.5",
     "final-form-material-ui": "^0.3.0",
     "keymirror": "^0.1.1",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.1",
     "ramda": "^0.26.1",
     "react": "^16.9.0",
     "react-chartjs-2": "^2.7.6",
